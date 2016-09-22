@@ -1,0 +1,111 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1348\cocoasubrtf170
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww12600\viewh14500\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+
+\f0\fs24 \cf0 C\'92est du code invent\'e9, comme du pseudo code donc pas de ctrl-c ctrl-v ;)\
+\
+1. mettre en place la configuration\
+\
+learning_coef = 1;\
+\
+2. pr\'e9parer les fonctions de base :\
+\
+//fonction g (la sigmo\'efde)\
+function g(s)\{\
+	k = 1;\
+	return 1/(1+e^(-k*s));\
+\}\
+\
+//D\'e9riv\'e9e de g\
+function gp(s)\{\
+	k=1;\
+	return (k*e^(-k*s)) / (1+e^(-k*s))^2;\
+\}\
+\
+//Calcul des nouvelles valeurs avec e l\'92erreur du neurone de sortie et s le r\'e9sultat de la somme du neurone d\'92entr\'e9e\
+function new_weight(old_weight, e_out, s_in)\{\
+	return old_weight + learning_coef * e_out * s_in;\
+\}\
+\
+3. pr\'e9parer la structure de donn\'e9es\
+Ici plusieurs choix sont possibles, en programmation non objet, et en faisant un sorte de faire un programme g\'e9n\'e9ral (gestion des couches\'85) voici ce que je propose :\
+a. donner les informations du r\'e9seau dans une matrice de cette forme :\
+	[nombre neurones couche 0, nombre neurones couche 1, nombre neurones couche 2]\
+sur l\'92exemple du diaporama cela donne\
+	layers = [2, 2, 1]\
+\
+b. donner les informations de connexion des neurones dans une autre matrice\
+	[[Une matrice donnant les couches \'e0 relier],[Une matrice donnant les couches \'e0 relier],[Une matrice donnant les couches \'e0 relier]]\
+toujours avec le m\'eame exemple :\
+	connexions = [ [1], [2], [] ]  //On relie la premi\'e8re couche (0) \'e0 la couche 1, et la 1 \'e0 la couche 2\
+Dans ce fonctionnement, on ne pourra pas brancher manuellement les neurones entre eux, mais c\'92est pas grave, on peut d\'e9j\'e0 faire pas mal de chose comme \'e7a.\
+La suite du programme consiste en cr\'e9er les donn\'e9es manquantes (poids, sauvegarde de l\'92erreur et des sommations\'85)\
+\
+4. g\'e9n\'e9rer le r\'e9seau\
+on fait \'e7a \'e0 partir des deux seules matrices de g\'e9n\'e9ration ci dessus\
+\
+/*G\'e9n\'e8re un neurone avec un num\'e9ro, une valeur al\'e9atoire pour le poids entre -1 et 1, une liste de neurones suivants, une liste de neurones pr\'e9c\'e9dents, la valeur de la somme, la valeur apr\'e8s la sigmo\'efde, l\'92erreur, et la valeur souhait\'e9e.*/\
+function neuron(id)\{\
+	return [id,random()*2-1,[],[],0,0,0,0];\
+\}\
+\
+function build(layers, connexions)\{\
+	\
+	network = []; //Va contenir les donn\'e9es utiles au programme\
+	id = 0;\
+\
+	//Cr\'e9er les neurones\
+	for (index, nb_neurons) in enumerate(layers):\
+		network.append( [ ] ); //Cr\'e9er une couche\
+		for i in range(0, nb_neurons):\
+			id++;\
+			network[ index ].append( neuron( id ) ); //Ajouter un neurone dans la couche cr\'e9\'e9e\
+\
+	//Ajouter les connexions\
+	for (indexTopLayer, list) in enumerate(connexions):\
+		for indexBottomLayer in list:\
+			for n1 in network[indexTopLayer]:\
+				for n2 in network[indexBottomLayer]:\
+					n1[1].append( n2[0] ); //Ajouter l\'92id de n2 aux neurones sortants de n1\
+					n2[2].append( n1[0] ); //Ajouter l\'92id de n1 aux neurones entrants de n2\
+\
+	//Voil\'e0, tout est connect\'e9 ;)\
+\
+	return network;\
+\
+\}\
+\
+SI vous ne saisissez pas quelques chose, rappelez vous que dans tous les langages, les listes ne se d\'e9doublent pas comme les variables. C\'92est \'e0 dire que modifier une liste donn\'e9e en param\'e8tre d\'92une fonction, c\'92est modifier l\'92originale, ce qui va \'eatre pratique pour tout le programme :)\
+\
+Bon a ce stade, arr\'eatez vous une seconde et v\'e9rifiez que vous avez bien compris ce qu\'92on a fait, on a fait des listes de listes, et on a tent\'e9 de faire des \'93objets\'94 neurones, sous cette forme (liste de liste), \'e0 chaque fois on enregistre les informations de base qui vont servir maintenant \'e0 faire les calculs de sortie et d\'92erreur.\
+\
+On peut pr\'e9ciser que ce n\'92est pas tr\'e8s optimis\'e9, en effet, on va devoir rechercher les neurones par leurs identifiants quand on voudra descendre ou remonter l\'92erreur, en orient\'e9 objet, ou dans d\'92autres langages, on aurait pu travailler avec la position m\'e9moire des \'93neurones\'94, et donc avoir un gain de vitesse. Mais pour le moment on va faire comme \'e7a ;)\
+\
+5. D\'e9finir les entr\'e9es et ce qu\'92on veut \'e0 la sortie\
+\
+Ici du coup \'e7a va \'eatre assez simple :\
+si on veut en entr\'e9e de notre exemple 1 et 0, on fait :\
+network = build(layer, connexions)\
+network[0][0][5] = 1; //La couche zero, le neurone zero, sa valeur post-sigmoide (vous suivez ? ^^)\
+network[0][1][5] = 0;//La couche zero, le neurone un, sa valeur post-sigmoide (vous suivez ? ^^)\
+\
+Et la valeur souhait\'e9e\
+network[2][0][7] = 1; //La couche 2 (la derni\'e8re), le premier et seul neurone de la couche, et on acc\'e8de a sa valeur voulue\
+\
+6. Faire le calcul de la sortie selon les entr\'e9es :\
+Je disais tout \'e0 l\'92heure qu\'92on pouvait aller modifier des listes sans les copier et en modifiant l\'92originale, donc on va en profiter et faire quelques fonctions pratiques :\
+\
+function getNeuron(network, id)\{\
+	for layer in network:\
+		for n in layer:\
+			if n[0]==id:\
+				return n;\
+	return null;\
+\}\
+//Ce qui sera pratique, c\'92est que modifier la valeur retourn\'e9e par cette fonction modifiera vraiment le neurone de network ;)\
+//Cependant on voit aussi ici pourquoi le programme risque d\'92\'eatre lent, pour beaucoup de neurones, il faudra tout balayer plusieurs fois par calcul ou remont\'e9e d\'92erreur\'85\
+\
+==> La suite dans un prochain \'e9pisode (oui je sais c\'92est le plus important, mais au moins vous avez la structure de donn\'e9e ;))\
+}
