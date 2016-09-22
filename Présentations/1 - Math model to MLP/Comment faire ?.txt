@@ -1,0 +1,104 @@
+C’est du code inventé, comme du pseudo code donc pas de ctrl-c ctrl-v ;)
+
+1. mettre en place la configuration
+
+learning_coef = 1;
+
+2. préparer les fonctions de base :
+
+//fonction g (la sigmoïde)
+function g(s){
+	k = 1;
+	return 1/(1+e^(-k*s));
+}
+
+//Dérivée de g
+function gp(s){
+	k=1;
+	return (k*e^(-k*s)) / (1+e^(-k*s))^2;
+}
+
+//Calcul des nouvelles valeurs avec e l’erreur du neurone de sortie et s le résultat de la somme du neurone d’entrée
+function new_weight(old_weight, e_out, s_in){
+	return old_weight + learning_coef * e_out * s_in;
+}
+
+3. préparer la structure de données
+Ici plusieurs choix sont possibles, en programmation non objet, et en faisant un sorte de faire un programme général (gestion des couches…) voici ce que je propose :
+a. donner les informations du réseau dans une matrice de cette forme :
+	[nombre neurones couche 0, nombre neurones couche 1, nombre neurones couche 2]
+sur l’exemple du diaporama cela donne
+	layers = [2, 2, 1]
+
+b. donner les informations de connexion des neurones dans une autre matrice
+	[[Une matrice donnant les couches à relier],[Une matrice donnant les couches à relier],[Une matrice donnant les couches à relier]]
+toujours avec le même exemple :
+	connexions = [ [1], [2], [] ]  //On relie la première couche (0) à la couche 1, et la 1 à la couche 2
+Dans ce fonctionnement, on ne pourra pas brancher manuellement les neurones entre eux, mais c’est pas grave, on peut déjà faire pas mal de chose comme ça.
+La suite du programme consiste en créer les données manquantes (poids, sauvegarde de l’erreur et des sommations…)
+
+4. générer le réseau
+on fait ça à partir des deux seules matrices de génération ci dessus
+
+/*Génère un neurone avec un numéro, une valeur aléatoire pour le poids entre -1 et 1, une liste de neurones suivants, une liste de neurones précédents, la valeur de la somme, la valeur après la sigmoïde, l’erreur, et la valeur souhaitée.*/
+function neuron(id){
+	return [id,random()*2-1,[],[],0,0,0,0];
+}
+
+function build(layers, connexions){
+	
+	network = []; //Va contenir les données utiles au programme
+	id = 0;
+
+	//Créer les neurones
+	for (index, nb_neurons) in enumerate(layers):
+		network.append( [ ] ); //Créer une couche
+		for i in range(0, nb_neurons):
+			id++;
+			network[ index ].append( neuron( id ) ); //Ajouter un neurone dans la couche créée
+
+	//Ajouter les connexions
+	for (indexTopLayer, list) in enumerate(connexions):
+		for indexBottomLayer in list:
+			for n1 in network[indexTopLayer]:
+				for n2 in network[indexBottomLayer]:
+					n1[1].append( n2[0] ); //Ajouter l’id de n2 aux neurones sortants de n1
+					n2[2].append( n1[0] ); //Ajouter l’id de n1 aux neurones entrants de n2
+
+	//Voilà, tout est connecté ;)
+
+	return network;
+
+}
+
+SI vous ne saisissez pas quelques chose, rappelez vous que dans tous les langages, les listes ne se dédoublent pas comme les variables. C’est à dire que modifier une liste donnée en paramètre d’une fonction, c’est modifier l’originale, ce qui va être pratique pour tout le programme :)
+
+Bon a ce stade, arrêtez vous une seconde et vérifiez que vous avez bien compris ce qu’on a fait, on a fait des listes de listes, et on a tenté de faire des “objets” neurones, sous cette forme (liste de liste), à chaque fois on enregistre les informations de base qui vont servir maintenant à faire les calculs de sortie et d’erreur.
+
+On peut préciser que ce n’est pas très optimisé, en effet, on va devoir rechercher les neurones par leurs identifiants quand on voudra descendre ou remonter l’erreur, en orienté objet, ou dans d’autres langages, on aurait pu travailler avec la position mémoire des “neurones”, et donc avoir un gain de vitesse. Mais pour le moment on va faire comme ça ;)
+
+5. Définir les entrées et ce qu’on veut à la sortie
+
+Ici du coup ça va être assez simple :
+si on veut en entrée de notre exemple 1 et 0, on fait :
+network = build(layer, connexions)
+network[0][0][5] = 1; //La couche zero, le neurone zero, sa valeur post-sigmoide (vous suivez ? ^^)
+network[0][1][5] = 0;//La couche zero, le neurone un, sa valeur post-sigmoide (vous suivez ? ^^)
+
+Et la valeur souhaitée
+network[2][0][7] = 1; //La couche 2 (la dernière), le premier et seul neurone de la couche, et on accède a sa valeur voulue
+
+6. Faire le calcul de la sortie selon les entrées :
+Je disais tout à l’heure qu’on pouvait aller modifier des listes sans les copier et en modifiant l’originale, donc on va en profiter et faire quelques fonctions pratiques :
+
+function getNeuron(network, id){
+	for layer in network:
+		for n in layer:
+			if n[0]==id:
+				return n;
+	return null;
+}
+//Ce qui sera pratique, c’est que modifier la valeur retournée par cette fonction modifiera vraiment le neurone de network ;)
+//Cependant on voit aussi ici pourquoi le programme risque d’être lent, pour beaucoup de neurones, il faudra tout balayer plusieurs fois par calcul ou remontée d’erreur…
+
+==> La suite dans un prochain épisode (oui je sais c’est le plus important, mais au moins vous avez la structure de donnée ;))
