@@ -11,7 +11,7 @@ public class neurone {
 
 	public int id;
 	public double combinaison = 0; //Résultat fonction de combinaison
-	public double result = 0; //Résultat après 
+	public double result = 0; //Résultat après sigmoide
 	public double error = 0;
 	public double value = 0;
 	public double expected = 0;

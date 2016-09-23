@@ -26,7 +26,7 @@ public class main_image {
 		layer l1 = new layer(16*16);
 		layer l2 = new layer(16*16);
 		layer l3 = new layer(8*8);
-		layer l4 = new layer(16);
+		layer l4 = new layer(4*4);
 		layer l5 = new layer(10);
 		l1.setNext(l2);
 		l2.setNext(l3);
