@@ -27,7 +27,6 @@ public class main {
 
 		l1.connectTo(l2);
 		l2.connectTo(l3);
-		l1.connectTo(l3);
 
 		
 		int i, iterations, n, a,b;
@@ -40,7 +39,7 @@ public class main {
 			l1.get(0).setValue((double)a);
 			l1.get(1).setValue((double)b);
 			
-			l3.get(0).setExpected(Math.abs(a-b)); // |a-b| correspond à un XOR
+			l3.get(0).setExpected(a*b); // |a-b| correspond à un XOR
 			
 			l1.runRecursive();
 			l3.calculErrors();

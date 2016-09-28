@@ -40,7 +40,7 @@ public class main_image {
 
 		String imgs[] = {"imgs/1.png","imgs/2.png","imgs/3.png"};
 		int i, iterations, n, im;
-		iterations = 10000;
+		iterations = 1000;
 		for(i=0;i<iterations; i++){
 			
 			//Open image
