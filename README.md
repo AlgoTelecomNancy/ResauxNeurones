@@ -1,4 +1,4 @@
-# ResauxNeurones
+# ReseauxNeurones
 Tous les fichiers et données du pôle Algo de Télécom Nancy
 
 Les exemples se trouvent dans Exemples/ (et oui !)
